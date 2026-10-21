@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Basketball League Java Code Breakdown</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Inter & Fira Code Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    code, pre, .font-mono {
+      font-family: 'Fira Code', monospace;
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    /* Code Section Highlighting */
+    .code-section {
+      transition: all 0.2s ease-in-out;
+      border-left: 3px solid transparent;
+      margin: 2px 0;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .code-section.active-section {
+      background-color: rgba(59, 130, 246, 0.18) !important;
+      border-left-color: #3b82f6 !important;
+    }
+
+    .code-section.highlight-all-active {
+      background-color: rgba(59, 130, 246, 0.08);
+      border-left-color: rgba(59, 130, 246, 0.4);
+    }
+
+    /* Translation Card Highlighting */
+    .translation-card {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .translation-card.active-card {
+      border-color: #3b82f6 !important;
+      background-color: #1e293b !important;
+      box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.25), 0 8px 10px -6px rgba(59, 130, 246, 0.2);
+      transform: translateY(-2px);
+    }
+
+    /* Line Numbers */
+    .line-number {
+      user-select: none;
+      color: #475569;
+      text-align: right;
+      padding-right: 1rem;
+      display: inline-block;
+      width: 3.2rem;
+      flex-shrink: 0;
+    }
+
+    /* Java Token Highlighting Syntax */
+    .j-kw { color: #f43f5e; font-weight: 500; }     /* Keywords (public, class, int) */
+    .j-str { color: #34d399; }                       /* Strings */
+    .j-num { color: #fbbf24; }                       /* Numbers */
+    .j-cmt { color: #64748b; font-style: italic; }  /* Comments */
+    .j-fn { color: #60a5fa; }                        /* Methods */
+    .j-cls { color: #a78bfa; }                       /* Classes */
+
+    /* How It Works Mode */
+    #toggle-how.how-toggle-on {
+      background-color: #7c3aed;
+      border-color: #8b5cf6;
+      color: #ffffff;
+    }
+    #toggle-how.how-toggle-on:hover {
+      background-color: #8b5cf6;
+    }
+
+    /* Hidden until the mode is switched on */
+    body:not(.how-on) .how-wrap {
+      display: none;
+    }
+
+    .how-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.3rem 0.65rem;
+      border-radius: 0.5rem;
+      font-size: 11px;
+      font-weight: 500;
+      color: #c4b5fd;
+      background: rgba(139, 92, 246, 0.1);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      transition: background-color 0.2s, border-color 0.2s;
+    }
+    .how-btn:hover {
+      background: rgba(139, 92, 246, 0.2);
+      border-color: rgba(139, 92, 246, 0.5);
+    }
+    .how-btn:focus-visible {
+      outline: 2px solid #8b5cf6;
+      outline-offset: 2px;
+    }
+    .how-chevron {
+      transition: transform 0.25s ease;
+    }
+    .how-btn[aria-expanded="true"] .how-chevron {
+      transform: rotate(180deg);
+    }
+
+    /* Smooth open/close without fixed heights */
+    .how-panel {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.28s ease;
+    }
+    .how-panel.open {
+      grid-template-rows: 1fr;
+    }
+    .how-inner {
+      min-height: 0;
+      overflow: hidden;
+      visibility: hidden;
+      transition: visibility 0s linear 0.28s;
+    }
+    .how-panel.open .how-inner {
+      visibility: visible;
+      transition-delay: 0s;
+    }
+
+    .how-body {
+      margin-top: 0.6rem;
+      padding: 0.75rem;
+      border-radius: 0.6rem;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(139, 92, 246, 0.2);
+    }
+    .how-step-num {
+      flex: none;
+      width: 1.25rem;
+      height: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 9999px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #c4b5fd;
+      background: rgba(139, 92, 246, 0.15);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+    .how-code {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.7rem;
+      color: #93c5fd;
+      background: rgba(59, 130, 246, 0.12);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      padding: 0 0.3rem;
+      border-radius: 0.3rem;
+      overflow-wrap: anywhere;
+    }
+    .how-note {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+      padding: 0.5rem 0.65rem;
+      border-radius: 0.5rem;
+      font-size: 11px;
+      line-height: 1.5;
+      color: #fcd34d;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+    .how-note i {
+      margin-top: 2px;
+      font-size: 10px;
+    }
+    .how-note .how-code {
+      color: #fde68a;
+      background: rgba(245, 158, 11, 0.15);
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .how-panel, .how-inner, .how-chevron, .how-btn {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-hidden">
+
+  <!-- Header -->
+  <header class="bg-slate-900/90 border-b border-slate-800 px-4 py-3 flex-none backdrop-blur-md z-20">
+    <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-3">
+      
+      <!-- Title & Info -->
+      <div class="flex items-center gap-3 w-full lg:w-auto justify-between">
+        <div class="flex items-center gap-3">
+          <div class="bg-blue-600/20 text-blue-400 p-2.5 rounded-lg border border-blue-500/30 flex items-center justify-center">
+            <i class="fa-solid fa-code-compare text-xl"></i>
+          </div>
+          <div>
+            <h1 class="font-bold text-base sm:text-lg leading-tight flex items-center gap-2">
+              Basketball League Source Code
+              <span class="text-xs font-semibold px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">Java</span>
+            </h1>
+            <p class="text-xs text-slate-400">Interactive Line-by-Line Code Breakdown & Translation</p>
+          </div>
+        </div>
+
+        <!-- Lock Status Indicator (Mobile/Tablet) -->
+        <div id="lock-badge" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-medium">
+          <i class="fa-solid fa-lock text-[10px]"></i> Selected
+        </div>
+      </div>
+
+      <!-- Controls & Utilities -->
+      <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-end">
+        
+        <!-- Search Input -->
+        <div class="relative flex-1 sm:w-56 lg:w-64">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+          <input type="text" id="search-input" placeholder="Search code or explanations..." 
+                 class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+        </div>
+
+        <!-- Toggle All Button -->
+        <button id="toggle-highlight-all" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-medium transition flex items-center gap-1.5">
+          <i class="fa-solid fa-border-all text-xs"></i>
+          <span id="highlight-all-text">Highlight All</span>
+        </button>
+
+        <!-- How It Works Mode Button -->
+        <button id="toggle-how" type="button" aria-pressed="false" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-medium transition flex items-center gap-1.5">
+          <i class="fa-solid fa-lightbulb text-xs"></i>
+          <span id="how-text">How It Works: Off</span>
+        </button>
+
+        <!-- Copy Code Button -->
+        <button id="copy-btn" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition shadow-sm">
+          <i class="fa-regular fa-copy"></i>
+          <span>Copy Java</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Split View -->
+  <main class="flex-1 flex flex-col md:flex-row overflow-hidden max-w-7xl w-full mx-auto p-2 sm:p-4 gap-4">
+    
+    <!-- Code Window (Left) -->
+    <section class="flex-1 flex flex-col bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl relative">
+      
+      <!-- Code Header -->
+      <div class="bg-slate-950 px-4 py-2.5 border-b border-slate-800 flex items-center justify-between text-xs text-slate-400 select-none">
+        <div class="flex items-center gap-2">
+          <span class="flex gap-1.5 mr-2">
+            <span class="w-3 h-3 rounded-full bg-red-500/80 inline-block"></span>
+            <span class="w-3 h-3 rounded-full bg-yellow-500/80 inline-block"></span>
+            <span class="w-3 h-3 rounded-full bg-green-500/80 inline-block"></span>
+          </span>
+          <i class="fa-solid fa-file-code text-blue-400"></i>
+          <span class="font-mono text-slate-200 font-medium">Main.java</span>
+        </div>
+        <div class="flex items-center gap-3 text-slate-500 text-[11px]">
+          <span class="hidden sm:inline">Hover/Click sections to translate</span>
+          <span class="bg-slate-800 px-2 py-0.5 rounded text-slate-300 font-mono">342 lines</span>
+        </div>
+      </div>
+
+      <!-- Code Scroll Area -->
+      <div id="code-container" class="flex-1 overflow-y-auto p-2 font-mono text-xs sm:text-sm leading-relaxed relative">
+        <!-- Rendered Code Sections via JS -->
+      </div>
+    </section>
+
+    <!-- English Explanation Window (Right) -->
+    <section class="w-full md:w-[420px] lg:w-[480px] flex flex-col bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+      
+      <!-- Explanation Header -->
+      <div class="bg-slate-950 px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <i class="fa-solid fa-language text-blue-400 text-sm"></i>
+          <span>English Translation</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="unlock-btn" class="hidden text-xs text-amber-400 hover:text-amber-300 font-medium flex items-center gap-1 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+            <i class="fa-solid fa-lock-open text-[10px]"></i> Unlock Selection
+          </button>
+          <span id="section-badge" class="text-[11px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full border border-slate-700">9 Sections</span>
+        </div>
+      </div>
+
+      <!-- Explanation Scroll Area -->
+      <div id="explanation-container" class="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4">
+        <!-- Explanation cards injected by JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-blue-600 text-white px-4 py-2.5 rounded-lg shadow-lg border border-blue-400 text-xs font-medium translate-y-16 opacity-0 transition-all duration-300 flex items-center gap-2 z-50">
+    <i class="fa-solid fa-circle-check"></i>
+    <span id="toast-msg">Copied to clipboard!</span>
+  </div>
+
+  <!-- JavaScript App Logic -->
+  <script>
+    // Complete Java Source Code & Section Data
+    const SECTIONS = [
+      {
+        id: "sec-1",
+        title: "Section 1: Setup & Variable Storage",
+        tag: "Data Storage",
+        tagBg: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+        icon: "fa-database",
+        lines: "Lines 1–16",
+        startLine: 1,
+        code: `import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        // Team data
+        int teamCount = 0;
+        int totalGames = 0;
+        String[] teamNames = new String[0];
+        int[] wins = new int[0];
+        int[] losses = new int[0];
+        int[] pointsScored = new int[0];
+        int[] pointsAllowed = new int[0];
+
+        boolean running = true;`,
+        explanation: "Imports the input tool (Scanner) and sets up empty variable arrays to store team names, win counts, loss counts, points scored, and points allowed. It also sets a 'running' flag to keep the application active."
+      },
+      {
+        id: "sec-2",
+        title: "Section 2: Main Application Loop & Leader Calculation",
+        tag: "Algorithm",
+        tagBg: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+        icon: "fa-trophy",
+        lines: "Lines 18–43",
+        startLine: 18,
+        code: `        // Menu loop
+        while (running) {
+
+            // Find leaders
+            int maxWins = 0;
+            for (int i = 0; i < teamCount; i++) {
+                if (wins[i] > maxWins) {
+                    maxWins = wins[i];
+                }
+            }
+
+            int leaderCount = 0;
+            int leaderIndex = 0;
+            String leaders = "";
+            for (int i = 0; i < teamCount; i++) {
+                if (wins[i] == maxWins) {
+                    if (leaderCount > 0) {
+                        leaders = leaders + ", ";
+                    }
+                    leaders = leaders + teamNames[i];
+                    leaderIndex = i;
+                    leaderCount++;
+                }
+            }`,
+        explanation: "Starts the main application loop. Before showing the menu, it searches through all teams to determine who has the highest win count and creates a list of current league leaders (including ties)."
+      },
+      {
+        id: "sec-3",
+        title: "Section 3: User Input Validation & Menu Navigation",
+        tag: "User Interface",
+        tagBg: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+        icon: "fa-list-check",
+        lines: "Lines 45–66",
+        startLine: 45,
+        code: `            // Show menu
+            System.out.println();
+            System.out.println("--Basketball League Statistics--");
+            System.out.println("1. Register Teams");
+            System.out.println("2. Record Game Result");
+            System.out.println("3. View Team Statistics");
+            System.out.println("4. View League Standings");
+            System.out.println("5. View League Summary");
+            System.out.println("6. Exit");
+            System.out.print("Select an option: ");
+            int choice = sc.nextInt();
+
+            // Need teams
+            if (choice >= 2 && choice <= 5 && teamCount == 0) {
+                System.out.println("Register teams first.");
+                continue;
+            }
+
+            // Need games
+            if (choice >= 4 && choice <= 5 && totalGames == 0) {
+                System.out.println("Record a game first.");
+                continue;
+            }`,
+        explanation: "Displays the 6 menu choices and reads the user's selection. It includes safety checks that block access to statistical options if teams haven't been registered yet or if no games have been recorded."
+      },
+      {
+        id: "sec-4",
+        title: "Section 4: Option 1 - Registering Teams",
+        tag: "Setup",
+        tagBg: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+        icon: "fa-users-gear",
+        lines: "Lines 68–104",
+        startLine: 68,
+        code: `            switch (choice) {
+
+                case 1: {
+                    // Already done
+                    if (teamCount > 0) {
+                        System.out.println("Teams already registered.");
+                        break;
+                    }
+
+                    // Team count
+                    int num = 0;
+                    while (num < 4) {
+                        System.out.print("How many teams will participate? (min 4): ");
+                        num = sc.nextInt();
+                        if (num < 4) {
+                            System.out.println("Enter at least 4.");
+                        }
+                    }
+                    sc.nextLine();
+
+                    // New arrays
+                    teamCount = num;
+                    teamNames = new String[num];
+                    wins = new int[num];
+                    losses = new int[num];
+                    pointsScored = new int[num];
+                    pointsAllowed = new int[num];
+
+                    // Team names
+                    for (int i = 0; i < teamCount; i++) {
+                        System.out.print("Enter Team " + (i + 1) + ": ");
+                        teamNames[i] = sc.nextLine();
+                    }
+                    System.out.println("Teams registered!");
+                    break;
+                }`,
+        explanation: "Handles team registration. Requires at least 4 participating teams, allocates new array storage for all team statistics, and prompts the user to enter each team's name individually."
+      },
+      {
+        id: "sec-5",
+        title: "Section 5: Option 2 - Recording Game Results",
+        tag: "Match Recording",
+        tagBg: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+        icon: "fa-basketball-ball",
+        lines: "Lines 106–181",
+        startLine: 106,
+        code: `                case 2: {
+                    // Show teams
+                    System.out.println();
+                    System.out.println("--Teams--");
+                    for (int i = 0; i < teamCount; i++) {
+                        System.out.println((i + 1) + ". " + teamNames[i]);
+                    }
+
+                    // Home team
+                    int homePick = 0;
+                    while (homePick < 1 || homePick > teamCount) {
+                        System.out.print("Select Home Team: ");
+                        homePick = sc.nextInt();
+                        if (homePick < 1 || homePick > teamCount) {
+                            System.out.println("Invalid team number.");
+                        }
+                    }
+
+                    // Away team
+                    int awayPick = 0;
+                    while (awayPick < 1 || awayPick > teamCount || awayPick == homePick) {
+                        System.out.print("Select Away Team: ");
+                        awayPick = sc.nextInt();
+                        if (awayPick == homePick) {
+                            System.out.println("Invalid matchup.");
+                            System.out.println("A team cannot play against itself.");
+                        } else if (awayPick < 1 || awayPick > teamCount) {
+                            System.out.println("Invalid team number.");
+                        }
+                    }
+
+                    // Array positions
+                    int home = homePick - 1;
+                    int away = awayPick - 1;
+
+                    // Read scores
+                    int homeScore = 0;
+                    int awayScore = 0;
+                    boolean validScore = false;
+                    while (!validScore) {
+                        System.out.print(teamNames[home] + " Score: ");
+                        homeScore = sc.nextInt();
+                        System.out.print(teamNames[away] + " Score: ");
+                        awayScore = sc.nextInt();
+
+                        if (homeScore < 0 || awayScore < 0) {
+                            System.out.println("Invalid score. Scores cannot be negative.");
+                        } else if (homeScore == awayScore) {
+                            System.out.println("Invalid final score.");
+                            System.out.println("Basketball games cannot end in a tie.");
+                            System.out.println("Please enter the final score after overtime.");
+                        } else {
+                            validScore = true;
+                        }
+                    }
+
+                    // Update points
+                    pointsScored[home] = pointsScored[home] + homeScore;
+                    pointsAllowed[home] = pointsAllowed[home] + awayScore;
+                    pointsScored[away] = pointsScored[away] + awayScore;
+                    pointsAllowed[away] = pointsAllowed[away] + homeScore;
+
+                    // Find winner
+                    if (homeScore > awayScore) {
+                        wins[home]++;
+                        losses[away]++;
+                        System.out.println(teamNames[home] + " defeated " + teamNames[away]
+                                + ", " + homeScore + "-" + awayScore + ".");
+                    } else {
+                        wins[away]++;
+                        losses[home]++;
+                        System.out.println(teamNames[away] + " defeated " + teamNames[home]
+                                + ", " + awayScore + "-" + homeScore + ".");
+                    }
+                    totalGames++;
+                    System.out.println("Game successfully recorded.");
+                    break;
+                }`,
+        explanation: "Records game outcomes between two selected teams. Prevents a team from playing against itself, rejects negative scores, enforces the no-tie rule (requiring overtime scores), and updates wins, losses, and point totals."
+      },
+      {
+        id: "sec-6",
+        title: "Section 6: Option 3 - Team Statistics Overview",
+        tag: "Analytics",
+        tagBg: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+        icon: "fa-chart-pie",
+        lines: "Lines 183–228",
+        startLine: 183,
+        code: `                case 3: {
+                    // Show teams
+                    System.out.println();
+                    System.out.println("--Teams--");
+                    for (int i = 0; i < teamCount; i++) {
+                        System.out.println((i + 1) + ". " + teamNames[i]);
+                    }
+
+                    // Pick team
+                    int pick = 0;
+                    while (pick < 1 || pick > teamCount) {
+                        System.out.print("Select Team: ");
+                        pick = sc.nextInt();
+                        if (pick < 1 || pick > teamCount) {
+                            System.out.println("Invalid team number.");
+                        }
+                    }
+                    int t = pick - 1;
+
+                    // Calculations
+                    int gp = wins[t] + losses[t];
+                    double avg = 0.0;
+                    double pct = 0.0;
+                    if (gp > 0) {
+                        avg = (double) pointsScored[t] / gp;
+                        pct = (double) wins[t] / gp * 100;
+                    }
+                    int diff = pointsScored[t] - pointsAllowed[t];
+
+                    // Show stats
+                    System.out.println();
+                    System.out.println("--Team Statistics--");
+                    System.out.println("Team: " + teamNames[t]);
+                    System.out.println("Games Played: " + gp);
+                    System.out.println("Wins: " + wins[t]);
+                    System.out.println("Losses: " + losses[t]);
+                    System.out.println("Points Scored: " + pointsScored[t]);
+                    System.out.println("Points Allowed: " + pointsAllowed[t]);
+                    System.out.printf("Average Points: %.2f%n", avg);
+                    System.out.printf("Point Difference: %+d%n", diff);
+                    System.out.printf("Win Percentage: %.2f%%%n", pct);
+                    break;
+                }`,
+        explanation: "Calculates and prints individual team performance metrics: total games played, wins, losses, points scored/allowed, average points per game, overall point differential, and win percentage."
+      },
+      {
+        id: "sec-7",
+        title: "Section 7: Option 4 - League Standings & Leaderboard",
+        tag: "Sorting Algorithm",
+        tagBg: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+        icon: "fa-arrow-down-wide-short",
+        lines: "Lines 230–282",
+        startLine: 230,
+        code: `                case 4: {
+                    // Rank order
+                    int[] order = new int[teamCount];
+                    for (int i = 0; i < teamCount; i++) {
+                        order[i] = i;
+                    }
+
+                    // Bubble sort
+                    for (int i = 0; i < teamCount - 1; i++) {
+                        for (int j = 0; j < teamCount - 1 - i; j++) {
+                            int a = order[j];
+                            int b = order[j + 1];
+                            int diffA = pointsScored[a] - pointsAllowed[a];
+                            int diffB = pointsScored[b] - pointsAllowed[b];
+
+                            // Wins, then diff
+                            if (wins[b] > wins[a] || (wins[b] == wins[a] && diffB > diffA)) {
+                                order[j] = b;
+                                order[j + 1] = a;
+                            }
+                        }
+                    }
+
+                    // Print table
+                    System.out.println();
+                    System.out.println("--League Standings--");
+                    System.out.printf("%-16s%5s%5s%5s%7s%7s%7s%n",
+                            "Team", "GP", "W", "L", "PF", "PA", "DIFF");
+                    for (int i = 0; i < teamCount; i++) {
+                        int t = order[i];
+                        int gp = wins[t] + losses[t];
+                        int diff = pointsScored[t] - pointsAllowed[t];
+                        System.out.printf("%-16s%5d%5d%5d%7d%7d%+7d%n",
+                                teamNames[t], gp, wins[t], losses[t],
+                                pointsScored[t], pointsAllowed[t], diff);
+                    }
+
+                    // Show leader
+                    System.out.println();
+                    if (leaderCount == 1) {
+                        System.out.println("Current League Leader: " + leaders);
+                        System.out.println("Record: " + maxWins + "W - " + losses[leaderIndex] + "L");
+                    } else {
+                        System.out.println("League Leaders (tied):");
+                        for (int i = 0; i < teamCount; i++) {
+                            if (wins[i] == maxWins) {
+                                System.out.println(teamNames[i] + " - " + maxWins + "W");
+                            }
+                        }
+                    }
+                    break;
+                }`,
+        explanation: "Sorts teams using a Bubble Sort algorithm based on total wins. If wins are tied, it uses point differential as the tie-breaker before displaying a formatted standings table."
+      },
+      {
+        id: "sec-8",
+        title: "Section 8: Option 5 - League Summary & Stats Analysis",
+        tag: "League Summary",
+        tagBg: "bg-teal-500/10 text-teal-400 border-teal-500/20",
+        icon: "fa-chart-column",
+        lines: "Lines 284–326",
+        startLine: 284,
+        code: `                case 5: {
+                    // Totals and bests
+                    int totalPoints = 0;
+                    int bestOffense = 0;
+                    int bestDefense = -1;
+                    for (int i = 0; i < teamCount; i++) {
+                        totalPoints = totalPoints + pointsScored[i];
+
+                        if (pointsScored[i] > pointsScored[bestOffense]) {
+                            bestOffense = i;
+                        }
+
+                        // Skip unplayed
+                        if (wins[i] + losses[i] == 0) {
+                            continue;
+                        }
+                        if (bestDefense == -1 || pointsAllowed[i] < pointsAllowed[bestDefense]) {
+                            bestDefense = i;
+                        }
+                    }
+
+                    // Show summary
+                    System.out.println();
+                    System.out.println("--League Summary--");
+                    System.out.println("Number of Teams: " + teamCount);
+                    System.out.println("Games Recorded: " + totalGames);
+                    System.out.printf("Total Points Scored: %,d%n", totalPoints);
+                    System.out.println("Highest Scoring Team: " + teamNames[bestOffense]);
+                    System.out.println("Points Scored: " + pointsScored[bestOffense]);
+                    System.out.println("Best Defensive Team: " + teamNames[bestDefense]);
+                    System.out.println("Points Allowed: " + pointsAllowed[bestDefense]);
+                    if (leaderCount == 1) {
+                        System.out.println("League Leader: " + leaders);
+                    } else {
+                        System.out.println("League Leaders (tied): " + leaders);
+                    }
+                    break;
+                }`,
+        explanation: "Generates league-wide macro statistics: totals all points scored across all matches, identifies the best offense (highest points scored), and best defense (fewest points allowed)."
+      },
+      {
+        id: "sec-9",
+        title: "Section 9: Option 6 & Exit Handling",
+        tag: "System",
+        tagBg: "bg-slate-500/10 text-slate-400 border-slate-500/20",
+        icon: "fa-power-off",
+        lines: "Lines 328–342",
+        startLine: 328,
+        code: `                case 6:
+                    running = false;
+                    System.out.println("Goodbye!");
+                    break;
+
+                default:
+                    System.out.println("Invalid option. Enter 1-6.");
+            }
+        }
+
+        sc.close();
+    }
+}`,
+        explanation: "Ends the program when option 6 is selected: it sets the running flag to false so the main loop stops, prints a farewell message, and closes the Scanner to release the keyboard input."
+      }
+    ];
+
+    // How It Works Data (backticks = code chip)
+    const HOW_IT_WORKS = {
+      "sec-1": {
+        steps: [
+          "`import java.util.Scanner` lets the program read what the user types.",
+          "`Scanner sc` is the object that listens to the keyboard.",
+          "Five arrays store the team data: `teamNames`, `wins`, `losses`, `pointsScored` and `pointsAllowed`. The same position in every array is the same team, so index 0 is Team 1 in all five.",
+          "The arrays start at size 0 because the number of teams isn’t known yet. Section 4 replaces them.",
+          "`teamCount` and `totalGames` start at 0. Later checks use them to know whether teams exist and whether any game was played.",
+          "`running = true` keeps the menu loop alive."
+        ]
+      },
+      "sec-2": {
+        steps: [
+          "`while (running)` repeats everything below it (the leader search, the menu and the chosen action) until `running` becomes false.",
+          "The first `for` loop visits every team and keeps the highest win count in `maxWins`. If `wins[i] > maxWins`, that team’s wins replace it.",
+          "The second `for` loop visits every team again. Any team where `wins[i] == maxWins` is a leader, so its name is added to the `leaders` text, with a comma before it if it isn’t the first.",
+          "`leaderCount` counts how many leaders there are and `leaderIndex` remembers the last one found.",
+          "Two passes are needed because you can’t tell who is tied until you know the top number.",
+          "This runs every time the menu appears, so the leader is always up to date."
+        ]
+      },
+      "sec-3": {
+        steps: [
+          "The `System.out.println` lines print the six menu choices.",
+          "`sc.nextInt()` reads the number the user types and stores it in `choice`.",
+          "First `if`: choices 2–5 need teams. If `teamCount == 0`, it prints a message and `continue` jumps back to the top of the `while` loop, skipping the `switch`.",
+          "Second `if`: choices 4–5 need at least one game. It does the same with `totalGames == 0`.",
+          "Choices 1 and 6 skip both checks because they don’t need any data. If a choice passes, the program moves on to the `switch` in Section 4."
+        ],
+        note: "These checks cover program state, not typing mistakes. Typing a letter instead of a number would crash `nextInt()`."
+      },
+      "sec-4": {
+        steps: [
+          "`switch (choice)` jumps to the `case` that matches the number. `case 1` is registration.",
+          "If `teamCount > 0`, teams already exist, so it prints a message and `break` leaves the `switch`.",
+          "`while (num < 4)` keeps asking how many teams will play until the answer is at least 4.",
+          "`sc.nextLine()` clears the leftover Enter key after the number, so the first team name isn’t read as blank.",
+          "`teamCount` is set and all five arrays are recreated at size `num`. Every number starts at 0.",
+          "A `for` loop asks for each team name and stores it in `teamNames[i]`. The prompt shows `i + 1` because people count from 1, but arrays start at 0."
+        ]
+      },
+      "sec-5": {
+        steps: [
+          "A `for` loop prints the numbered team list.",
+          "The home-team `while` loop repeats until the pick is between 1 and `teamCount`.",
+          "The away-team loop does the same, and it also rejects the home team’s number so a team can’t play itself.",
+          "`home` and `away` subtract 1 from the picks to turn menu numbers into array positions.",
+          "The score loop asks for both scores and repeats until neither is negative and they aren’t equal. If a score is rejected, both scores are asked again. The `validScore` flag turns true once they pass.",
+          "Each team’s `pointsScored` grows by its own score and `pointsAllowed` grows by the opponent’s score.",
+          "If `homeScore > awayScore`, home gets a win and away gets a loss. Otherwise it’s the reverse. The result line is printed.",
+          "`totalGames++` counts the game. This is what later unlocks options 4 and 5."
+        ]
+      },
+      "sec-6": {
+        steps: [
+          "It shows the team list and asks for a team with the same validation loop. `t = pick - 1` is the array position.",
+          "Games played `gp` is wins plus losses.",
+          "Average points is `pointsScored[t] / gp` and win percentage is `wins[t] / gp * 100`.",
+          "`(double)` forces decimal division. Without it Java would drop the decimals.",
+          "`if (gp > 0)` prevents dividing by zero for a team that hasn’t played yet.",
+          "`diff` is points scored minus points allowed.",
+          "In the printout, `%.2f` means 2 decimals, `%+d` always shows + or −, `%%` prints a real % and `%n` starts a new line."
+        ]
+      },
+      "sec-7": {
+        steps: [
+          "The `order` array holds team positions (0, 1, 2…). It acts as a ranking list, so the real data arrays are never shuffled.",
+          "Bubble sort: the outer `for` loop does repeated passes, and the inner loop compares neighbors `order[j]` and `order[j + 1]`.",
+          "A swap happens if the second team has more wins, or equal wins and a better point difference (`diffB > diffA`).",
+          "The inner loop gets shorter each pass (`teamCount - 1 - i`) because the end of the list is already settled.",
+          "After all passes, the best team sits at the front of `order`.",
+          "`printf` prints the table header. `%-16s` left-aligns the name in 16 spaces and `%5d` right-aligns a number in 5 spaces.",
+          "A loop prints one row per team in `order`, so the rows come out in rank order.",
+          "The leader lines reuse Section 2’s results. One leader prints the name and record. A tie prints every team where `wins[i] == maxWins`."
+        ]
+      },
+      "sec-8": {
+        steps: [
+          "One `for` loop visits every team and updates three trackers.",
+          "`totalPoints` adds up every team’s `pointsScored`.",
+          "`bestOffense` starts at team 0 and switches to any team with more `pointsScored`.",
+          "`bestDefense` starts at -1, meaning “nobody yet”. Teams with no games are skipped with `continue`, otherwise their 0 points allowed would look like the best defense.",
+          "After that, the team with fewer `pointsAllowed` replaces the current best defense.",
+          "The summary prints. `%,d` adds thousands commas to the total points.",
+          "The leader line uses Section 2’s results and says “Leader” or “Leaders (tied)” depending on `leaderCount`."
+        ],
+        note: "Offense and defense compare totals, not per-game averages. A team that played fewer games can look better on defense."
+      },
+      "sec-9": {
+        steps: [
+          "`case 6` sets `running = false` and prints `Goodbye!`.",
+          "That `break` only leaves the `switch`. The loop actually ends because `while (running)` fails when it checks again at the top.",
+          "`default` catches any number outside 1–6 and prints an error, then the menu shows again.",
+          "After the loop, `sc.close()` releases the keyboard reader and `main` finishes."
+        ]
+      }
+    };
+
+    // State Variables
+    let lockedSectionId = null;
+    let isHighlightAll = false;
+    let isHowMode = false;
+    const openHowIds = new Set();
+
+    // Syntax Highlighter Helper for Java
+    function syntaxHighlightJava(code) {
+      // Escape HTML
+      let html = code
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+      // Replace Comments
+      html = html.replace(/(\/\/.*)/g, '<span class="j-cmt">$1</span>');
+
+      // Replace Strings
+      html = html.replace(/("[^"]*")/g, '<span class="j-str">$1</span>');
+
+      // Replace Keywords
+      const keywords = ['import', 'public', 'class', 'static', 'void', 'int', 'double', 'boolean', 'true', 'false', 'new', 'while', 'for', 'if', 'else', 'switch', 'case', 'break', 'continue', 'default'];
+      keywords.forEach(kw => {
+        const regex = new RegExp(`\\b(${kw})\\b`, 'g');
+        html = html.replace(regex, '<span class="j-kw">$1</span>');
+      });
+
+      // Replace Built-in Classes
+      const classes = ['Main', 'Scanner', 'System', 'String'];
+      classes.forEach(cls => {
+        const regex = new RegExp(`\\b(${cls})\\b`, 'g');
+        html = html.replace(regex, '<span class="j-cls">$1</span>');
+      });
+
+      // Replace Common Methods
+      html = html.replace(/\.(println|print|printf|nextInt|nextLine|close)\b/g, '.<span class="j-fn">$1</span>');
+
+      // Replace Numbers
+      html = html.replace(/\b(\d+)\b/g, '<span class="j-num">$1</span>');
+
+      return html;
+    }
+
+    // Escape text, turn `code` into chips
+    function formatHowText(text) {
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/`([^`]+)`/g, '<code class="how-code">$1</code>');
+    }
+
+    // Build button + steps for one card
+    function buildHowHtml(id) {
+      const how = HOW_IT_WORKS[id];
+      if (!how) return "";
+      const isOpen = openHowIds.has(id);
+
+      const steps = how.steps.map((step, i) => `
+        <li class="flex gap-2.5">
+          <span class="how-step-num">${i + 1}</span>
+          <span class="flex-1 text-xs text-slate-300 leading-relaxed">${formatHowText(step)}</span>
+        </li>
+      `).join("");
+
+      const note = how.note ? `
+        <div class="how-note">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>${formatHowText(how.note)}</span>
+        </div>
+      ` : "";
+
+      return `
+        <div class="how-wrap mt-3">
+          <button type="button" class="how-btn" data-how-id="${id}" aria-expanded="${isOpen}" aria-controls="how-panel-${id}">
+            <i class="fa-solid fa-lightbulb text-[10px]"></i>
+            <span class="how-btn-label">${isOpen ? "Hide how it works" : "How does it work?"}</span>
+            <i class="fa-solid fa-chevron-down how-chevron text-[9px]"></i>
+          </button>
+          <div id="how-panel-${id}" class="how-panel ${isOpen ? "open" : ""}">
+            <div class="how-inner">
+              <div class="how-body">
+                <ol class="space-y-2">${steps}</ol>
+                ${note}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Open or close one panel
+    function toggleHow(id) {
+      const panel = document.getElementById(`how-panel-${id}`);
+      const btn = document.querySelector(`.how-btn[data-how-id="${id}"]`);
+      if (!panel || !btn) return;
+
+      const willOpen = !panel.classList.contains("open");
+      panel.classList.toggle("open", willOpen);
+      btn.setAttribute("aria-expanded", String(willOpen));
+      btn.querySelector(".how-btn-label").textContent = willOpen ? "Hide how it works" : "How does it work?";
+
+      if (willOpen) {
+        openHowIds.add(id);
+        setActiveSection(id, true, false); // Show code
+      } else {
+        openHowIds.delete(id);
+      }
+    }
+
+    // DOM Elements
+    const codeContainer = document.getElementById("code-container");
+    const explanationContainer = document.getElementById("explanation-container");
+    const searchInput = document.getElementById("search-input");
+    const sectionBadge = document.getElementById("section-badge");
+    const lockBadge = document.getElementById("lock-badge");
+    const unlockBtn = document.getElementById("unlock-btn");
+    const toggleHighlightAllBtn = document.getElementById("toggle-highlight-all");
+    const highlightAllText = document.getElementById("highlight-all-text");
+    const toggleHowBtn = document.getElementById("toggle-how");
+    const howText = document.getElementById("how-text");
+    const copyBtn = document.getElementById("copy-btn");
+    const toast = document.getElementById("toast");
+    const toastMsg = document.getElementById("toast-msg");
+
+    // Initialize Render
+    window.addEventListener("DOMContentLoaded", () => {
+      renderApp();
+      setupGlobalEvents();
+    });
+
+    function renderApp(filterText = "") {
+      codeContainer.innerHTML = "";
+      explanationContainer.innerHTML = "";
+
+      const filtered = SECTIONS.filter(sec => {
+        if (!filterText) return true;
+        const q = filterText.toLowerCase();
+        return (
+          sec.title.toLowerCase().includes(q) ||
+          sec.explanation.toLowerCase().includes(q) ||
+          sec.tag.toLowerCase().includes(q) ||
+          sec.code.toLowerCase().includes(q)
+        );
+      });
+
+      sectionBadge.textContent = `${filtered.length} ${filtered.length === 1 ? 'Section' : 'Sections'}`;
+
+      if (filtered.length === 0) {
+        explanationContainer.innerHTML = `
+          <div class="p-8 text-center text-slate-500">
+            <i class="fa-solid fa-magnifying-glass text-2xl mb-2"></i>
+            <p class="text-xs">No matching code or explanation found for "${filterText}"</p>
+          </div>
+        `;
+        codeContainer.innerHTML = `
+          <div class="p-8 text-center text-slate-500">
+            <p class="text-xs">No code matches search filter.</p>
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach((sec) => {
+        // Build Code Block
+        const codeBlock = document.createElement("div");
+        codeBlock.id = `code-${sec.id}`;
+        codeBlock.className = `code-section cursor-pointer ${isHighlightAll ? 'highlight-all-active' : ''}`;
+        codeBlock.dataset.id = sec.id;
+
+        const lines = sec.code.split("\n");
+        let formattedLines = "";
+        let lineNum = sec.startLine;
+
+        lines.forEach((line) => {
+          const highlighted = syntaxHighlightJava(line || " ");
+          formattedLines += `
+            <div class="flex hover:bg-slate-800/40 px-1 py-0.5 rounded">
+              <span class="line-number">${lineNum++}</span>
+              <span class="flex-1 overflow-x-auto whitespace-pre">${highlighted}</span>
+            </div>
+          `;
+        });
+
+        codeBlock.innerHTML = `
+          <div class="text-[10px] text-slate-500 flex items-center justify-between mb-1 px-2 pt-1 border-b border-slate-800/40 select-none">
+            <span class="font-sans font-semibold text-slate-400">${sec.title}</span>
+            <span class="text-[10px] text-slate-500">${sec.lines}</span>
+          </div>
+          <div>${formattedLines}</div>
+        `;
+
+        codeContainer.appendChild(codeBlock);
+
+        // Build Explanation Card
+        const card = document.createElement("div");
+        card.id = `card-${sec.id}`;
+        card.className = "translation-card bg-slate-950/80 border border-slate-800 rounded-xl p-4 cursor-pointer relative group hover:border-slate-700";
+        card.dataset.id = sec.id;
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <span class="text-xs font-bold text-slate-200 flex items-center gap-2">
+              <i class="fa-solid ${sec.icon} text-blue-400"></i>
+              ${sec.title}
+            </span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full border ${sec.tagBg} font-medium">
+              ${sec.tag}
+            </span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">${sec.explanation}</p>
+          ${buildHowHtml(sec.id)}
+          <div class="mt-3 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-500">
+            <span><i class="fa-regular fa-bookmark mr-1"></i>${sec.lines}</span>
+            <span class="text-blue-400/80 group-hover:text-blue-400 transition font-medium flex items-center gap-1">
+              Locate code <i class="fa-solid fa-chevron-right text-[9px]"></i>
+            </span>
+          </div>
+        `;
+
+        explanationContainer.appendChild(card);
+      });
+
+      attachInteractions();
+    }
+
+    function setActiveSection(sectionId, scrollCode = false, scrollCard = false) {
+      if (lockedSectionId && lockedSectionId !== sectionId) return;
+
+      // Clear previous actives
+      document.querySelectorAll(".active-section").forEach(el => el.classList.remove("active-section"));
+      document.querySelectorAll(".active-card").forEach(el => el.classList.remove("active-card"));
+
+      if (!sectionId) return;
+
+      const targetCode = document.getElementById(`code-${sectionId}`);
+      const targetCard = document.getElementById(`card-${sectionId}`);
+
+      if (targetCode) {
+        targetCode.classList.add("active-section");
+        if (scrollCode) {
+          targetCode.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
+
+      if (targetCard) {
+        targetCard.classList.add("active-card");
+        if (scrollCard) {
+          targetCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      }
+    }
+
+    function lockSection(sectionId) {
+      if (lockedSectionId === sectionId) {
+        unlockSelection();
+        return;
+      }
+
+      lockedSectionId = sectionId;
+      lockBadge.classList.remove("hidden");
+      lockBadge.classList.add("flex");
+      unlockBtn.classList.remove("hidden");
+
+      setActiveSection(sectionId, true, true);
+      showToast("Selection locked! Click 'Unlock' or click again to release.");
+    }
+
+    function unlockSelection() {
+      lockedSectionId = null;
+      lockBadge.classList.add("hidden");
+      lockBadge.classList.remove("flex");
+      unlockBtn.classList.add("hidden");
+
+      document.querySelectorAll(".active-section").forEach(el => el.classList.remove("active-section"));
+      document.querySelectorAll(".active-card").forEach(el => el.classList.remove("active-card"));
+    }
+
+    function attachInteractions() {
+      const codeBlocks = document.querySelectorAll(".code-section");
+      const cards = document.querySelectorAll(".translation-card");
+
+      codeBlocks.forEach(block => {
+        const id = block.dataset.id;
+        block.addEventListener("mouseenter", () => {
+          if (!lockedSectionId) setActiveSection(id, false, true);
+        });
+        block.addEventListener("mouseleave", () => {
+          if (!lockedSectionId) setActiveSection(null);
+        });
+        block.addEventListener("click", () => lockSection(id));
+      });
+
+      cards.forEach(card => {
+        const id = card.dataset.id;
+        card.addEventListener("mouseenter", () => {
+          if (!lockedSectionId) setActiveSection(id, false, false);
+        });
+        card.addEventListener("mouseleave", () => {
+          if (!lockedSectionId) setActiveSection(null);
+        });
+        card.addEventListener("click", () => lockSection(id));
+      });
+
+      // How It Works buttons (don't lock the card)
+      document.querySelectorAll(".how-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          toggleHow(btn.dataset.howId);
+        });
+      });
+
+      // Reading the steps shouldn't lock the card either
+      document.querySelectorAll(".how-panel").forEach(panel => {
+        panel.addEventListener("click", (e) => e.stopPropagation());
+      });
+    }
+
+    function setupGlobalEvents() {
+      // Search Event
+      searchInput.addEventListener("input", (e) => {
+        unlockSelection();
+        renderApp(e.target.value);
+      });
+
+      // Unlock Button
+      unlockBtn.addEventListener("click", unlockSelection);
+
+      // Toggle Highlight All
+      toggleHighlightAllBtn.addEventListener("click", () => {
+        isHighlightAll = !isHighlightAll;
+        if (isHighlightAll) {
+          toggleHighlightAllBtn.classList.add("bg-blue-600", "text-white", "border-blue-500");
+          toggleHighlightAllBtn.classList.remove("bg-slate-800", "text-slate-300", "border-slate-700");
+          highlightAllText.textContent = "Highlight Active";
+        } else {
+          toggleHighlightAllBtn.classList.remove("bg-blue-600", "text-white", "border-blue-500");
+          toggleHighlightAllBtn.classList.add("bg-slate-800", "text-slate-300", "border-slate-700");
+          highlightAllText.textContent = "Highlight All";
+        }
+        renderApp(searchInput.value);
+      });
+
+      // Toggle How It Works Mode
+      toggleHowBtn.addEventListener("click", () => {
+        isHowMode = !isHowMode;
+        document.body.classList.toggle("how-on", isHowMode);
+        toggleHowBtn.classList.toggle("how-toggle-on", isHowMode);
+        toggleHowBtn.setAttribute("aria-pressed", String(isHowMode));
+        howText.textContent = isHowMode ? "How It Works: On" : "How It Works: Off";
+        showToast(isHowMode
+          ? "How It Works mode on. Use the button on each section."
+          : "How It Works mode off.");
+      });
+
+      // Copy Java Code to Clipboard
+      copyBtn.addEventListener("click", () => {
+        const fullCode = SECTIONS.map(s => s.code).join("\n\n");
+        const tempTextArea = document.createElement("textarea");
+        tempTextArea.value = fullCode;
+        document.body.appendChild(tempTextArea);
+        tempTextArea.select();
+        try {
+          document.execCommand("copy");
+          showToast("Full Java code copied to clipboard!");
+        } catch (err) {
+          showToast("Failed to copy code.");
+        }
+        document.body.removeChild(tempTextArea);
+      });
+    }
+
+    function showToast(message) {
+      toastMsg.textContent = message;
+      toast.classList.remove("translate-y-16", "opacity-0");
+      toast.classList.add("translate-y-0", "opacity-100");
+
+      setTimeout(() => {
+        toast.classList.remove("translate-y-0", "opacity-100");
+        toast.classList.add("translate-y-16", "opacity-0");
+      }, 2500);
+    }
+  </script>
+</body>
+</html>
